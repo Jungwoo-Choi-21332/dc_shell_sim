@@ -1,0 +1,1291 @@
+==============================================================================
+  dc-sim-host  |  CentOS Linux 7 (가상)  |  Synopsys Design Compiler 학습 환경
+------------------------------------------------------------------------------
+  * 진짜 리눅스가 아니라 dc_shell_sim 이 흉내 내는 가상 터미널입니다.
+  * dc_shell             Design Compiler 실행  (dc_shell> exit 로 돌아오기)
+  * cd ~/projects/demo   예제 → dc_shell -f scripts/run_dc.tcl | tee dc.log
+  * 실제 PC 폴더(읽기 전용):  cd /mnt/c/Users/user/projects
+  * 실제 공개 라이브러리: cd ~/projects/sky130_demo  (SkyWater SKY130 tt/ss/ff)
+  * modfind <폴더>       .v 모듈 찾기     newproj <이름>  새 연습 프로젝트
+  * help  명령 목록      cat ~/README_실습.txt  실습 안내
+==============================================================================
+[user@dc-sim-host ~]$ [user@dc-sim-host sky130_demo]$ 
+                           Design Compiler Graphical   (Simulated)
+                                 DC Ultra (TM)          (Simulated)
+                                  DFTMAX (TM)           (Simulated)
+                              Power Compiler (TM)       (Simulated)
+                                 DesignWare (R)         (Simulated)
+                                 DC Expert (TM)         (Simulated)
+                               HDL Compiler (TM)        (Simulated)
+
+               Version S-2021.06-SP5-2 for linux64
+
+      dc_shell_sim : 교육용 모의 프로그램입니다. Synopsys 제품이 아니며 실제 합성을 하지 않습니다.
+      모든 메시지와 리포트 수치는 화면 흐름 학습을 위해 가상으로 생성된 값입니다.
+
+   tutorial : 추천 학습 흐름     help : 명령 목록     man <cmd> : 사용법     exit : 리눅스로
+
+Initializing...
+set TOP        top
+top
+set CLK_PERIOD 10.0   ;# 100 MHz (130nm 공정)
+10.0
+sh mkdir -p reports outputs
+set_svf outputs/${TOP}.svf
+Information: Setting svf file to 'outputs/top.svf'. (SVF-?)
+1
+analyze -format verilog [glob ./rtl/*.v]
+Running PRESTO HDLC
+Compiling source file /home/user/projects/sky130_demo/rtl/alu.v
+Compiling source file /home/user/projects/sky130_demo/rtl/counter.v
+Compiling source file /home/user/projects/sky130_demo/rtl/mac.v
+Compiling source file /home/user/projects/sky130_demo/rtl/top.v
+Presto compilation completed successfully.
+Information: Loading db file 'sky130_fd_sc_hd__tt_025C_1v80.db'
+1
+elaborate $TOP
+Loading db file 'gtech.db'
+Loading db file 'standard.sldb'
+  Loading link library 'gtech'
+Running PRESTO HDLC
+
+Inferred memory devices in process
+	in routine counter line 11 in file
+		'/home/user/projects/sky130_demo/rtl/counter.v'.
+===============================================================================
+|    Register Name    |   Type    | Width | Bus | MB | AR | AS | SR | SS | ST |
+===============================================================================
+|           count_reg | Flip-flop |     8 |  Y  | N  | Y  | N  | N  | N  | N  |
+===============================================================================
+Presto compilation completed successfully. (counter)
+Presto compilation completed successfully. (alu)
+
+Inferred memory devices in process
+	in routine mac line 12 in file
+		'/home/user/projects/sky130_demo/rtl/mac.v'.
+===============================================================================
+|    Register Name    |   Type    | Width | Bus | MB | AR | AS | SR | SS | ST |
+===============================================================================
+|             acc_reg | Flip-flop |    20 |  Y  | N  | Y  | N  | N  | N  | N  |
+===============================================================================
+Presto compilation completed successfully. (mac)
+
+Inferred memory devices in process
+	in routine top line 47 in file
+		'/home/user/projects/sky130_demo/rtl/top.v'.
+===============================================================================
+|    Register Name    |   Type    | Width | Bus | MB | AR | AS | SR | SS | ST |
+===============================================================================
+|          result_reg | Flip-flop |    16 |  Y  | N  | Y  | N  | N  | N  | N  |
+===============================================================================
+Presto compilation completed successfully. (top)
+Elaborated 4 designs.
+Current design is now 'top'.
+1
+current_design $TOP
+Current design is 'top'.
+{top}
+link
+
+  Linking design 'top'
+  Using the following designs and libraries:
+  --------------------------------------------------------------------------
+  top                            /home/user/projects/sky130_demo/rtl/top.v
+  counter                        /home/user/projects/sky130_demo/rtl/counter.v
+  alu                            /home/user/projects/sky130_demo/rtl/alu.v
+  mac                            /home/user/projects/sky130_demo/rtl/mac.v
+  sky130_fd_sc_hd__tt_025C_1v80 (library) /tools/lib/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+
+1
+check_design > reports/check_design.rpt
+1
+create_clock -period $CLK_PERIOD -name clk [get_ports clk]
+1
+set_clock_uncertainty 0.25 [get_clocks clk]
+1
+set_clock_transition  0.15 [get_clocks clk]
+1
+set DATA_IN [remove_from_collection [all_inputs] [get_ports clk]]
+{rst_n en a b op x c}
+set_input_delay  [expr {$CLK_PERIOD * 0.2}] -clock clk $DATA_IN
+1
+set_output_delay [expr {$CLK_PERIOD * 0.2}] -clock clk [all_outputs]
+1
+set_driving_cell -lib_cell sky130_fd_sc_hd__buf_2 $DATA_IN
+1
+set_load 0.005 [all_outputs]
+1
+set_false_path -from [get_ports rst_n]
+1
+check_timing
+
+Information: Checking generated_clocks...
+Information: Checking loops...
+Information: Checking no_input_delay...
+Information: Checking unconstrained_endpoints...
+Information: Checking pulse_clock_cell_type...
+Information: Checking no_driving_cell...
+Information: Checking partial_input_delay...
+1
+compile_ultra -gate_clock
+Information: Starting compile_ultra (simulated).
+Information: Evaluating DesignWare library utilization. (UISN-27)
+
+============================================================================
+| DesignWare Building Block Library  |         Version         | Available |
+============================================================================
+| Basic DW Building Blocks           | SIM-2026.11             |     *     |
+| Licensed DW Building Blocks        | SIM-2026.11             |     *     |
+============================================================================
+
+Information: Sequential output inversion is enabled.  SVF file must be used for formal verification. (OPT-1208)
+  Simplifying Design 'top'
+Information: Ungrouping hierarchy u_cnt before Pass 1 (OPT-776)
+
+Loaded alib file './alib-52/sky130_fd_sc_hd__tt_025C_1v80.db.alib' (placeholder)
+  Building model 'DW01_NAND2'
+  Processing 'DW01_NAND2'
+
+  Beginning Pass 1 Mapping
+  ------------------------
+  Processing 'mac'
+  Processing 'mac_DW01_add_0'
+  Processing 'mac_DW02_mult_0'
+  Processing 'alu'
+  Processing 'alu_DW01_add_0'
+  Processing 'alu_DW01_sub_0'
+  Processing 'alu_DW01_cmp6_0'
+  Processing 'alu_DW01_cmp6_1'
+  Processing 'counter'
+  Processing 'counter_DW01_add_0'
+  Processing 'top'
+
+  Updating timing information
+Information: Updating design information... (UID-85)
+
+  Beginning Implementation Selection
+  ----------------------------------
+  Mapping 'mac_DW01_add_0' (pparch)
+  Mapping 'mac_DW02_mult_0' (pparch)
+  Mapping 'alu_DW01_add_0' (pparch)
+  Mapping 'alu_DW01_sub_0' (pparch)
+  Mapping 'counter_DW01_add_0' (pparch)
+
+  Beginning Mapping Optimizations  (Ultra effort)
+  -------------------------------
+                                  TOTAL
+   ELAPSED            WORST NEG   SETUP    DESIGN
+    TIME      AREA      SLACK     COST    RULE COST         ENDPOINT
+  --------- --------- --------- --------- --------- -------------------------
+    0:00:01   18193.9      0.00       0.0       0.0 
+    0:00:02   18082.4      0.00       0.0       0.0 
+    0:00:02   17970.9      0.00       0.0       0.0 
+    0:00:03   17859.3      0.00       0.0       0.0 
+
+  Beginning Delay Optimization Phase
+  ----------------------------------
+                                  TOTAL
+   ELAPSED            WORST NEG   SETUP    DESIGN
+    TIME      AREA      SLACK     COST    RULE COST         ENDPOINT
+  --------- --------- --------- --------- --------- -------------------------
+    0:00:03   17859.3      0.00       0.0       0.0 
+    0:00:04   16763.8      0.00       0.0       0.0 
+    0:00:04   15668.2      0.00       0.0       0.0 
+    0:00:05   14572.7      0.00       0.0       0.0 
+
+  Beginning Area-Recovery Phase  (cleanup)
+  -----------------------------
+                                  TOTAL
+   ELAPSED            WORST NEG   SETUP    DESIGN
+    TIME      AREA      SLACK     COST    RULE COST         ENDPOINT
+  --------- --------- --------- --------- --------- -------------------------
+    0:00:05   14572.7      0.00       0.0       0.0 
+    0:00:06   14292.4      0.00       0.0       0.0 
+    0:00:06   14012.2      0.00       0.0       0.0 
+Loading db file 'sky130_fd_sc_hd__tt_025C_1v80.db'
+
+
+  Optimization Complete
+  ---------------------
+Information: State dependent leakage is now switched from on to off. (PWR-102)
+
+Information: Clock gating: 28 of 44 registers gated (2 ICG cells). (PWR-730)
+1
+report_qor
+
+****************************************
+Report : qor
+Design : top
+Version: S-2021.06-SP5-2
+Date   : Wed Nov 11 13:03:45 2026
+****************************************
+
+
+  Timing Path Group 'clk'
+  -----------------------------------
+  Levels of Logic:                4.00
+  Critical Path Length:           5.07
+  Critical Path Slack:            4.54
+  Critical Path Clk Period:      10.00
+  Total Negative Slack:           0.00
+  No. of Violating Paths:         0.00
+  Worst Hold Violation:           0.00
+  Total Hold Violation:           0.00
+  No. of Hold Violations:         0.00
+  -----------------------------------
+
+
+  Cell Count
+  -----------------------------------
+  Hierarchical Cell Count:           2
+  Hierarchical Port Count:          24
+  Leaf Cell Count:                1338
+  Buf/Inv Cell Count:              123
+  Buf Cell Count:                   90
+  Inv Cell Count:                   33
+  CT Buf/Inv Cell Count:             0
+  Combinational Cell Count:       1294
+  Sequential Cell Count:            44
+  Macro Count:                       0
+  -----------------------------------
+
+
+  Area
+  -----------------------------------
+  Combinational Area:     12911.132800
+  Noncombinational Area:   1101.056000
+  Buf/Inv Area:             574.300800
+  Total Buffer Area:            450.43
+  Total Inverter Area:          123.87
+  Macro/Black Box Area:       0.000000
+  Net Area:                   0.000000
+  -----------------------------------
+  Cell Area:              14012.188800
+  Design Area:            14012.188800
+
+
+  Design Rules
+  -----------------------------------
+  Total Number of Nets:           1511
+  Nets With Violations:              0
+  Max Trans Violations:              0
+  Max Cap Violations:                0
+  -----------------------------------
+
+
+  Hostname: dc-sim-host
+
+  Compile CPU Statistics
+  -----------------------------------------
+  Resource Sharing:               0.12
+  Logic Optimization:             0.73
+  Mapping Optimization:           1.36
+  -----------------------------------------
+  Overall Compile Time:           2.29
+  Overall Compile Wall Clock Time:       2.64
+
+1
+report_timing -max_paths 1 -transition_time
+
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -max_paths 1
+Design : top
+Version: S-2021.06-SP5-2
+Date   : Wed Nov 11 13:03:45 2026
+****************************************
+
+Operating Conditions: tt_025C_1v80   Library: sky130_fd_sc_hd__tt_025C_1v80
+Wire Load Model Mode: top
+
+  Startpoint: u_mac/acc_reg_0_
+              (rising edge-triggered flip-flop clocked by clk)
+  Endpoint: u_mac/acc_reg_19_
+            (rising edge-triggered flip-flop clocked by clk)
+  Path Group: clk
+  Path Type: max
+
+  Point                                          Trans     Incr       Path
+  --------------------------------------------------------------------------
+  clock clk (rise edge)                                    0.00       0.00 
+  clock network delay (ideal)                              0.00       0.00 
+  u_mac/acc_reg_0_/CLK (sky130_fd_sc_hd__dfrtp_1)     0.00     0.00       0.00 r
+  u_mac/acc_reg_0_/Q (sky130_fd_sc_hd__dfrtp_1)     0.09     0.39       0.39 f
+  n533 (net)                                                          0.39 
+  u_mac/U530/Y (sky130_fd_sc_hd__nand2_1)         0.09     0.04       0.43 f
+  n610 (net)                                                          0.43 
+  u_mac/U607/X (sky130_fd_sc_hd__and2_1)          0.10     0.16       0.59 r
+  n1331 (net)                                                         0.59 
+  u_mac/U1328/SUM (sky130_fd_sc_hd__fa_1)         0.10     0.37       0.95 f
+  n1458 (net)                                                         0.95 
+  u_mac/U1455/X (sky130_fd_sc_hd__and2_1)         0.10     0.15       1.10 r
+  n2000 (net)                                                         1.10 
+  u_mac/U1997/SUM (sky130_fd_sc_hd__fa_1)         0.10     0.42       1.52 f
+  n2071 (net)                                                         1.52 
+  u_mac/U2068/SUM (sky130_fd_sc_hd__fa_1)         0.10     0.45       1.96 r
+  n3041 (net)                                                         1.96 
+  u_mac/U3038/X (sky130_fd_sc_hd__and2_1)         0.10     0.13       2.10 f
+  n3583 (net)                                                         2.10 
+  u_mac/U3580/X (sky130_fd_sc_hd__mux2_1)         0.09     0.29       2.38 r
+  n4062 (net)                                                         2.38 
+  u_mac/U4059/X (sky130_fd_sc_hd__and2_1)         0.10     0.13       2.51 f
+  n4198 (net)                                                         2.51 
+  u_mac/U4195/SUM (sky130_fd_sc_hd__ha_1)         0.09     0.23       2.75 r
+  n4310 (net)                                                         2.75 
+  u_mac/U4307/Y (sky130_fd_sc_hd__inv_1)          0.08     0.04       2.78 f
+  n4498 (net)                                                         2.78 
+  u_mac/U4495/X (sky130_fd_sc_hd__buf_2)          0.05     0.08       2.87 r
+  n4718 (net)                                                         2.87 
+  u_mac/U4715/X (sky130_fd_sc_hd__mux2_1)         0.09     0.16       3.03 f
+  n4804 (net)                                                         3.03 
+  u_mac/U4801/Y (sky130_fd_sc_hd__nand2_1)        0.09     0.06       3.09 r
+  n5152 (net)                                                         3.09 
+  u_mac/U5149/X (sky130_fd_sc_hd__and2_1)         0.10     0.12       3.21 f
+  n6115 (net)                                                         3.21 
+  u_mac/U6112/Y (sky130_fd_sc_hd__nor2_1)         0.17     0.10       3.32 r
+  n6372 (net)                                                         3.32 
+  u_mac/U6369/X (sky130_fd_sc_hd__and2_1)         0.10     0.14       3.46 f
+  n6685 (net)                                                         3.46 
+  u_mac/U6682/X (sky130_fd_sc_hd__buf_2)          0.05     0.06       3.52 r
+  n6875 (net)                                                         3.52 
+  u_mac/U6872/X (sky130_fd_sc_hd__mux2_1)         0.09     0.26       3.79 f
+  n6906 (net)                                                         3.79 
+  u_mac/U6903/X (sky130_fd_sc_hd__buf_2)          0.05     0.11       3.90 r
+  n6963 (net)                                                         3.90 
+  u_mac/U6960/X (sky130_fd_sc_hd__buf_2)          0.05     0.07       3.97 f
+  n7136 (net)                                                         3.97 
+  u_mac/U7133/X (sky130_fd_sc_hd__mux2_1)         0.09     0.19       4.16 r
+  n7750 (net)                                                         4.16 
+  u_mac/U7747/SUM (sky130_fd_sc_hd__ha_1)         0.09     0.28       4.43 f
+  n8662 (net)                                                         4.43 
+  u_mac/U8659/Y (sky130_fd_sc_hd__nor2_1)         0.17     0.08       4.51 r
+  n8901 (net)                                                         4.51 
+  u_mac/U8898/SUM (sky130_fd_sc_hd__fa_1)         0.10     0.36       4.87 f
+  n9175 (net)                                                         4.87 
+  u_mac/U9172/Y (sky130_fd_sc_hd__inv_1)          0.08     0.06       4.94 r
+  n9783 (net)                                                         4.94 
+  u_mac/U9780/Y (sky130_fd_sc_hd__nor2_1)         0.17     0.13       5.07 f
+  u_mac/acc_reg_19_/D (sky130_fd_sc_hd__dfrtp_1)     0.05     0.00       5.07 f
+  data arrival time                                                   5.07 
+
+  clock clk (rise edge)                                   10.00      10.00 
+  clock network delay (ideal)                              0.00      10.00 
+  clock uncertainty                                       -0.25       9.75 
+  u_mac/acc_reg_19_/CLK (sky130_fd_sc_hd__dfrtp_1)              0.00       9.75 r
+  library setup time                                      -0.13       9.62 
+  data required time                                                  9.62 
+  --------------------------------------------------------------------------
+  data required time                                                  9.62 
+  data arrival time                                                  -5.07 
+  --------------------------------------------------------------------------
+  slack (MET)                                                                  4.54
+
+
+1
+report_timing -delay_type min -max_paths 1
+
+****************************************
+Report : timing
+        -path full
+        -delay min
+        -max_paths 1
+Design : top
+Version: S-2021.06-SP5-2
+Date   : Wed Nov 11 13:03:45 2026
+****************************************
+
+Operating Conditions: tt_025C_1v80   Library: sky130_fd_sc_hd__tt_025C_1v80
+Wire Load Model Mode: top
+
+  Startpoint: u_mac/acc_reg_10_
+              (rising edge-triggered flip-flop clocked by clk)
+  Endpoint: u_mac/acc_reg_9_
+            (rising edge-triggered flip-flop clocked by clk)
+  Path Group: clk
+  Path Type: min
+
+  Point                                                    Incr       Path
+  ------------------------------------------------------------------------
+  clock clk (rise edge)                                    0.00       0.00 
+  clock network delay (ideal)                              0.00       0.00 
+  u_mac/acc_reg_10_/CLK (sky130_fd_sc_hd__dfrtp_1)         0.00       0.00 r
+  u_mac/acc_reg_10_/Q (sky130_fd_sc_hd__dfrtp_1)           0.39       0.39 f
+  u_mac/U263/X (sky130_fd_sc_hd__buf_2)                    0.12       0.51 f
+  u_mac/U1470/Y (sky130_fd_sc_hd__nor2_1)                  0.22       0.73 r
+  u_mac/U3389/SUM (sky130_fd_sc_hd__ha_1)                  0.27       1.00 f
+  u_mac/acc_reg_9_/D (sky130_fd_sc_hd__dfrtp_1)            0.00       1.00 f
+  data arrival time                                                   1.00 
+
+  clock clk (rise edge)                                    0.00       0.00 
+  clock network delay (ideal)                              0.00       0.00 
+  clock uncertainty                                        0.25       0.25 
+  u_mac/acc_reg_9_/CLK (sky130_fd_sc_hd__dfrtp_1)          0.00       0.25 r
+  library hold time                                       -0.04       0.21 
+  data required time                                                  0.21 
+  ------------------------------------------------------------------------
+  data required time                                                  0.21 
+  data arrival time                                                  -1.00 
+  ------------------------------------------------------------------------
+  slack (MET)                                                         0.79
+
+
+1
+report_area -hierarchy       > reports/area.rpt
+1
+report_reference             > reports/reference.rpt
+1
+report_timing -max_paths 10  > reports/timing.rpt
+1
+report_power -hierarchy      > reports/power.rpt
+1
+report_constraint -all_violators > reports/violators.rpt
+1
+change_names -rules verilog -hierarchy
+Information: Using name rules 'verilog'. (UCN-1)
+Information: Changed 44 object names in 4 designs (bus bit -> _N_ format). (UCN-2)
+1
+write -format verilog -hierarchy -output outputs/${TOP}_netlist.v
+Writing verilog file '/home/user/projects/sky130_demo/outputs/top_netlist.v'.
+1
+write -format ddc     -hierarchy -output outputs/${TOP}.ddc
+Writing ddc file '/home/user/projects/sky130_demo/outputs/top.ddc'.
+Writing ddc file 'outputs/top.ddc' done (simulated JSON container).
+1
+write_sdc outputs/${TOP}.sdc
+1
+echo "==== SKY130 합성 완료 (reports/, outputs/) ===="
+==== SKY130 합성 완료 (reports/, outputs/) ====
+exit
+
+Memory usage for this session 108 Mbytes.
+Memory usage for this session including child processes 108 Mbytes.
+CPU usage for this session 10 seconds ( 0.00 hours ).
+Elapsed time for this session 1 seconds ( 0.00 hours ).
+
+Thank you...
+[user@dc-sim-host sky130_demo]$ 
+                                 PrimeTime (R)          (Simulated)
+                               PrimeTime (R) SI         (Simulated)
+                               PrimeTime (R) PX         (Simulated)
+                            PrimeTime (R) ECO Option    (Simulated)
+
+                Version S-2021.06-SP5-2 for linux64
+
+      dc_shell_sim : 교육용 모의 PrimeTime 입니다. 실제 STA 를 수행하지 않습니다.
+
+set TOP top
+top
+set search_path ". /tools/lib/sky130_fd_sc_hd/db"
+. /tools/lib/sky130_fd_sc_hd/db
+set link_path   "* sky130_fd_sc_hd__tt_025C_1v80.db"
+* sky130_fd_sc_hd__tt_025C_1v80.db
+read_verilog outputs/${TOP}_netlist.v
+Loading verilog file '/home/user/projects/sky130_demo/outputs/top_netlist.v'
+Information: Reading Verilog into new design registry.
+1
+current_design $TOP
+{top}
+link_design
+Linking design 'top'...
+Using the following designs and libraries:
+--------------------------------------------------------------------------
+  top                            /home/user/projects/sky130_demo/outputs/top_netlist.v
+  sky130_fd_sc_hd__tt_025C_1v80 (library) /tools/lib/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+Information: Module 'top' in file '/home/user/projects/sky130_demo/outputs/top_netlist.v' successfully linked.
+Information: 1338 leaf cells, 44 registers. (LNK-045)
+1
+read_sdc outputs/${TOP}.sdc
+Reading SDC version 2.1...
+1
+check_timing
+Information: Checking 'no_input_delay'.
+Information: Checking 'no_driving_cell'.
+Information: Checking 'unconstrained_endpoints'.
+Information: Checking 'unexpandable_clocks'.
+Information: Checking 'latch_fanout'.
+Information: Checking 'no_clock'.
+Information: Checking 'partial_input_delay'.
+Information: Checking 'generic'.
+Information: Checking 'loops'.
+Information: Checking 'generated_clocks'.
+Information: Checking 'pulse_clock_non_pulse_clock_merge'.
+Information: Checking 'pll_configuration'.
+Information: Checking 'voltage_level'.
+check_timing succeeded.
+1
+update_timing
+Information: Updating design information... (UID-85)
+1
+report_analysis_coverage
+
+****************************************
+Report : analysis_coverage
+Design : top
+Version: S-2021.06-SP5-2
+Date   : Wed Nov 11 13:03:45 2026
+****************************************
+
+Type of Check         Total              Met         Violated         Untested
+------------------------------------------------------------------------------
+setup                    44         44 (100%)         0 (  0%)         0 (  0%)
+hold                     44         44 (100%)         0 (  0%)         0 (  0%)
+recovery                 44          0 (  0%)         0 (  0%)        44 (100%)
+removal                  44          0 (  0%)         0 (  0%)        44 (100%)
+min_pulse_width         132        132 (100%)         0 (  0%)         0 (  0%)
+out_setup                46         46 (100%)         0 (  0%)         0 (  0%)
+out_hold                 46         46 (100%)         0 (  0%)         0 (  0%)
+------------------------------------------------------------------------------
+All Checks              400        312 ( 78%)         0 (  0%)        88 ( 22%)
+
+1
+report_global_timing
+
+****************************************
+Report : global_timing
+Design : top
+Version: S-2021.06-SP5-2
+Date   : Wed Nov 11 13:03:45 2026
+****************************************
+
+Setup violations
+---------------------------------------------------------
+             Total      reg->reg     in->reg    reg->out    in->out
+---------------------------------------------------------
+WNS           0.00         0.00        0.00        0.00       0.00
+TNS           0.00         0.00        0.00        0.00       0.00
+NUM              0            0           0           0          0
+---------------------------------------------------------
+
+No setup violations found.
+No hold violations found.
+
+1
+report_timing -max_paths 1
+
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -max_paths 1
+Design : top
+Version: S-2021.06-SP5-2
+Date   : Wed Nov 11 13:03:45 2026
+****************************************
+
+Operating Conditions: tt_025C_1v80   Library: sky130_fd_sc_hd__tt_025C_1v80
+Wire Load Model Mode: top
+
+  Startpoint: u_mac/acc_reg_0_
+              (rising edge-triggered flip-flop clocked by clk)
+  Endpoint: u_mac/acc_reg_19_
+            (rising edge-triggered flip-flop clocked by clk)
+  Path Group: clk
+  Path Type: max
+
+  Point                                                    Incr       Path
+  ------------------------------------------------------------------------
+  clock clk (rise edge)                                    0.00       0.00 
+  clock network delay (ideal)                              0.00       0.00 
+  u_mac/acc_reg_0_/CLK (sky130_fd_sc_hd__dfrtp_1)          0.00       0.00 r
+  u_mac/acc_reg_0_/Q (sky130_fd_sc_hd__dfrtp_1)            0.39       0.39 f
+  u_mac/U530/Y (sky130_fd_sc_hd__nand2_1)                  0.04       0.43 f
+  u_mac/U607/X (sky130_fd_sc_hd__and2_1)                   0.16       0.59 r
+  u_mac/U1328/SUM (sky130_fd_sc_hd__fa_1)                  0.37       0.95 f
+  u_mac/U1455/X (sky130_fd_sc_hd__and2_1)                  0.15       1.10 r
+  u_mac/U1997/SUM (sky130_fd_sc_hd__fa_1)                  0.42       1.52 f
+  u_mac/U2068/SUM (sky130_fd_sc_hd__fa_1)                  0.45       1.96 r
+  u_mac/U3038/X (sky130_fd_sc_hd__and2_1)                  0.13       2.10 f
+  u_mac/U3580/X (sky130_fd_sc_hd__mux2_1)                  0.29       2.38 r
+  u_mac/U4059/X (sky130_fd_sc_hd__and2_1)                  0.13       2.51 f
+  u_mac/U4195/SUM (sky130_fd_sc_hd__ha_1)                  0.23       2.75 r
+  u_mac/U4307/Y (sky130_fd_sc_hd__inv_1)                   0.04       2.78 f
+  u_mac/U4495/X (sky130_fd_sc_hd__buf_2)                   0.08       2.87 r
+  u_mac/U4715/X (sky130_fd_sc_hd__mux2_1)                  0.16       3.03 f
+  u_mac/U4801/Y (sky130_fd_sc_hd__nand2_1)                 0.06       3.09 r
+  u_mac/U5149/X (sky130_fd_sc_hd__and2_1)                  0.12       3.21 f
+  u_mac/U6112/Y (sky130_fd_sc_hd__nor2_1)                  0.10       3.32 r
+  u_mac/U6369/X (sky130_fd_sc_hd__and2_1)                  0.14       3.46 f
+  u_mac/U6682/X (sky130_fd_sc_hd__buf_2)                   0.06       3.52 r
+  u_mac/U6872/X (sky130_fd_sc_hd__mux2_1)                  0.26       3.79 f
+  u_mac/U6903/X (sky130_fd_sc_hd__buf_2)                   0.11       3.90 r
+  u_mac/U6960/X (sky130_fd_sc_hd__buf_2)                   0.07       3.97 f
+  u_mac/U7133/X (sky130_fd_sc_hd__mux2_1)                  0.19       4.16 r
+  u_mac/U7747/SUM (sky130_fd_sc_hd__ha_1)                  0.28       4.43 f
+  u_mac/U8659/Y (sky130_fd_sc_hd__nor2_1)                  0.08       4.51 r
+  u_mac/U8898/SUM (sky130_fd_sc_hd__fa_1)                  0.36       4.87 f
+  u_mac/U9172/Y (sky130_fd_sc_hd__inv_1)                   0.06       4.94 r
+  u_mac/U9780/Y (sky130_fd_sc_hd__nor2_1)                  0.13       5.07 f
+  u_mac/acc_reg_19_/D (sky130_fd_sc_hd__dfrtp_1)           0.00       5.07 f
+  data arrival time                                                   5.07 
+
+  clock clk (rise edge)                                   10.00      10.00 
+  clock network delay (ideal)                              0.00      10.00 
+  clock uncertainty                                       -0.25       9.75 
+  u_mac/acc_reg_19_/CLK (sky130_fd_sc_hd__dfrtp_1)         0.00       9.75 r
+  library setup time                                      -0.13       9.62 
+  data required time                                                  9.62 
+  ------------------------------------------------------------------------
+  data required time                                                  9.62 
+  data arrival time                                                  -5.07 
+  ------------------------------------------------------------------------
+  slack (MET)                                                         4.54
+
+
+1
+report_timing -delay_type min -max_paths 1
+
+****************************************
+Report : timing
+        -path full
+        -delay min
+        -max_paths 1
+Design : top
+Version: S-2021.06-SP5-2
+Date   : Wed Nov 11 13:03:45 2026
+****************************************
+
+Operating Conditions: tt_025C_1v80   Library: sky130_fd_sc_hd__tt_025C_1v80
+Wire Load Model Mode: top
+
+  Startpoint: u_mac/acc_reg_10_
+              (rising edge-triggered flip-flop clocked by clk)
+  Endpoint: u_mac/acc_reg_9_
+            (rising edge-triggered flip-flop clocked by clk)
+  Path Group: clk
+  Path Type: min
+
+  Point                                                    Incr       Path
+  ------------------------------------------------------------------------
+  clock clk (rise edge)                                    0.00       0.00 
+  clock network delay (ideal)                              0.00       0.00 
+  u_mac/acc_reg_10_/CLK (sky130_fd_sc_hd__dfrtp_1)         0.00       0.00 r
+  u_mac/acc_reg_10_/Q (sky130_fd_sc_hd__dfrtp_1)           0.39       0.39 f
+  u_mac/U263/X (sky130_fd_sc_hd__buf_2)                    0.12       0.51 f
+  u_mac/U1470/Y (sky130_fd_sc_hd__nor2_1)                  0.22       0.73 r
+  u_mac/U3389/SUM (sky130_fd_sc_hd__ha_1)                  0.27       1.00 f
+  u_mac/acc_reg_9_/D (sky130_fd_sc_hd__dfrtp_1)            0.00       1.00 f
+  data arrival time                                                   1.00 
+
+  clock clk (rise edge)                                    0.00       0.00 
+  clock network delay (ideal)                              0.00       0.00 
+  clock uncertainty                                        0.25       0.25 
+  u_mac/acc_reg_9_/CLK (sky130_fd_sc_hd__dfrtp_1)          0.00       0.25 r
+  library hold time                                       -0.04       0.21 
+  data required time                                                  0.21 
+  ------------------------------------------------------------------------
+  data required time                                                  0.21 
+  data arrival time                                                  -1.00 
+  ------------------------------------------------------------------------
+  slack (MET)                                                         0.79
+
+
+1
+report_constraint -all_violators
+
+****************************************
+Report : constraint
+        -all_violators
+Design : top
+Version: S-2021.06-SP5-2
+Date   : Wed Nov 11 13:03:45 2026
+****************************************
+
+This design has no violated constraints.
+
+1
+sh mkdir -p reports
+report_analysis_coverage > reports/pt_coverage.rpt
+1
+report_timing -max_paths 10 > reports/pt_timing.rpt
+1
+exit
+
+Timing updates: 1 (0 implicit, 1 explicit) (0 incremental, 1 full, 0 logical).
+Noise updates: 0 (0 implicit, 0 explicit) (0 incremental, 0 full).
+Maximum memory usage for this session: 246.00 MB
+CPU usage for this session:   1 seconds ( 0.00 hours )
+Elapsed time for this session:   0 seconds ( 0.00 hours )
+
+Thank you for using pt_shell!
+[user@dc-sim-host sky130_demo]$ 
+                               Formality (R)            (Simulated)
+
+                Version S-2021.06-SP5-2 for linux64
+
+      dc_shell_sim : 교육용 모의 Formality 입니다. 실제 등가성 검증을 수행하지 않습니다.
+      (RTL 이 합성 후 바뀌었는지 등을 비교해서 결과를 만듭니다.)
+
+set TOP top
+top
+set synopsys_auto_setup true
+true
+if {[file exists outputs/${TOP}.svf]} { set_svf outputs/${TOP}.svf } else { set_svf default.svf }
+SVF set to '/home/user/projects/sky130_demo/outputs/top.svf'.
+1
+read_db -technology_library /tools/lib/sky130_fd_sc_hd/db/sky130_fd_sc_hd__tt_025C_1v80.db
+Loading db file '/tools/lib/sky130_fd_sc_hd/db/sky130_fd_sc_hd__tt_025C_1v80.db'
+1
+read_verilog -r [glob ./rtl/*.v] -libname WORK
+Loading verilog file '/home/user/projects/sky130_demo/rtl/alu.v'
+Loading verilog file '/home/user/projects/sky130_demo/rtl/counter.v'
+Loading verilog file '/home/user/projects/sky130_demo/rtl/mac.v'
+Loading verilog file '/home/user/projects/sky130_demo/rtl/top.v'
+Current container set to 'r'
+1
+set_top r:/WORK/$TOP
+Setting top design to 'r:/WORK/top'
+Status:   Elaborating design top   ...  
+Status:  Implementing inferred operators...
+Top design successfully set to 'r:/WORK/top'
+Reference design set to 'r:/WORK/top'
+1
+read_verilog -i outputs/${TOP}_netlist.v -libname WORK
+Loading verilog file '/home/user/projects/sky130_demo/outputs/top_netlist.v'
+Current container set to 'i'
+1
+set_top i:/WORK/$TOP
+Setting top design to 'i:/WORK/top'
+Top design successfully set to 'i:/WORK/top'
+Implementation design set to 'i:/WORK/top'
+1
+match
+Reference design is 'r:/WORK/top'
+Implementation design is 'i:/WORK/top'
+Status:  Checking designs...
+Status:  Building verification models...
+Status:  Processing Guide Commands...
+Status:  Matching...
+    Matching by name...
+    Matching by signature analysis...
+
+*********************************** Matching Results ***********************************
+ 90 Compare points matched by name
+ 0 Compare points matched by signature analysis
+ 0 Compare points matched by topology
+ 54 Matched primary inputs, black-box outputs
+ 0(0) Unmatched reference(implementation) compare points
+ 0(0) Unmatched reference(implementation) primary inputs, black-box outputs
+ 0(0) Unmatched reference(implementation) unread points
+****************************************************************************************
+1
+verify
+Status:  Verifying...
+
+***************************** Synopsys Auto Setup Summary ******************************
+
+!!! Synopsys Auto Setup Mode was enabled. !!!
+!!! Verification results are valid assuming the following setup constraints: !!!
+
+### RTL Interpretation Setup
+   set hdlin_ignore_parallel_case false
+   set hdlin_ignore_full_case false
+   set hdlin_error_on_mismatch_message false
+   set hdlin_ignore_embedded_configuration true
+
+### Undriven Signal Handling Setup
+   set verification_set_undriven_signals synthesis
+
+### Test Logic Setup
+   set verification_verify_directly_undriven_output false
+   For details see report_dont_verify_points and report_constants
+
+For further details on Synopsys Auto Setup Mode: Type man synopsys_auto_setup
+****************************************************************************************
+
+
+******************************** Verification Results **********************************
+Verification SUCCEEDED
+   ATTENTION: synopsys_auto_setup mode was enabled.
+              See Synopsys Auto Setup Summary for details.
+-----------------------------------------------------------
+ Reference design: r:/WORK/top
+ Implementation design: i:/WORK/top
+ 90 Passing compare points
+----------------------------------------------------------------------------------------
+Matched Compare Points     BBPin    Loop   BBNet     Cut    Port     DFF     LAT   TOTAL
+----------------------------------------------------------------------------------------
+Passing (equivalent)           0       0       0       0      46      44       0      90
+Failing (not equivalent)       0       0       0       0       0       0       0       0
+****************************************************************************************
+1
+report_failing_points
+
+**************************************************
+Report         : failing_points
+Reference      : r:/WORK/top
+Implementation : i:/WORK/top
+Version        : S-2021.06-SP5-2
+Date           : Wed Nov 11 13:03:45 2026
+**************************************************
+
+No failing compare points.
+1
+exit
+
+Maximum memory usage for this session: 412 MB
+CPU usage for this session: 2 seconds
+Current time: Wed Nov 11 13:03:45 2026
+Elapsed time: 0 seconds
+
+Thank you for using Formality (R)!
+[user@dc-sim-host sky130_demo]$ 
+                           Design Compiler Graphical   (Simulated)
+                                 DC Ultra (TM)          (Simulated)
+                                  DFTMAX (TM)           (Simulated)
+                              Power Compiler (TM)       (Simulated)
+                                 DesignWare (R)         (Simulated)
+                                 DC Expert (TM)         (Simulated)
+                               HDL Compiler (TM)        (Simulated)
+
+               Version S-2021.06-SP5-2 for linux64
+
+      dc_shell_sim : 교육용 모의 프로그램입니다. Synopsys 제품이 아니며 실제 합성을 하지 않습니다.
+      모든 메시지와 리포트 수치는 화면 흐름 학습을 위해 가상으로 생성된 값입니다.
+
+   tutorial : 추천 학습 흐름     help : 명령 목록     man <cmd> : 사용법     exit : 리눅스로
+
+Initializing...
+set TOP top
+top
+set CLK_PERIOD 10.0
+10.0
+sh mkdir -p reports
+analyze -format verilog [glob ./rtl/*.v]
+Running PRESTO HDLC
+Compiling source file /home/user/projects/sky130_demo/rtl/alu.v
+Compiling source file /home/user/projects/sky130_demo/rtl/counter.v
+Compiling source file /home/user/projects/sky130_demo/rtl/mac.v
+Compiling source file /home/user/projects/sky130_demo/rtl/top.v
+Presto compilation completed successfully.
+Information: Loading db file 'sky130_fd_sc_hd__tt_025C_1v80.db'
+1
+foreach corner {tt_025C_1v80 ss_n40C_1v40 ff_n40C_1v95} {
+    echo ""
+    echo "################  corner : $corner  ################"
+    set_app_var target_library "sky130_fd_sc_hd__${corner}.db"
+    set_app_var link_library   "* $target_library"
+    remove_design -all
+    elaborate $TOP
+    link
+    create_clock -period $CLK_PERIOD -name clk [get_ports clk]
+    set_clock_uncertainty 0.25 [get_clocks clk]
+    set_input_delay  2.0 -clock clk [remove_from_collection [all_inputs] [get_ports clk]]
+    set_output_delay 2.0 -clock clk [all_outputs]
+    compile_ultra
+    report_qor > reports/qor_${corner}.rpt
+    report_timing > reports/timing_${corner}.rpt
+    echo "  area  = [get_attribute [current_design] area]"
+}
+
+################  corner : tt_025C_1v80  ################
+Removing 0 designs.
+Loading db file 'gtech.db'
+Loading db file 'standard.sldb'
+  Loading link library 'gtech'
+Running PRESTO HDLC
+
+Inferred memory devices in process
+	in routine counter line 11 in file
+		'/home/user/projects/sky130_demo/rtl/counter.v'.
+===============================================================================
+|    Register Name    |   Type    | Width | Bus | MB | AR | AS | SR | SS | ST |
+===============================================================================
+|           count_reg | Flip-flop |     8 |  Y  | N  | Y  | N  | N  | N  | N  |
+===============================================================================
+Presto compilation completed successfully. (counter)
+Presto compilation completed successfully. (alu)
+
+Inferred memory devices in process
+	in routine mac line 12 in file
+		'/home/user/projects/sky130_demo/rtl/mac.v'.
+===============================================================================
+|    Register Name    |   Type    | Width | Bus | MB | AR | AS | SR | SS | ST |
+===============================================================================
+|             acc_reg | Flip-flop |    20 |  Y  | N  | Y  | N  | N  | N  | N  |
+===============================================================================
+Presto compilation completed successfully. (mac)
+
+Inferred memory devices in process
+	in routine top line 47 in file
+		'/home/user/projects/sky130_demo/rtl/top.v'.
+===============================================================================
+|    Register Name    |   Type    | Width | Bus | MB | AR | AS | SR | SS | ST |
+===============================================================================
+|          result_reg | Flip-flop |    16 |  Y  | N  | Y  | N  | N  | N  | N  |
+===============================================================================
+Presto compilation completed successfully. (top)
+Elaborated 4 designs.
+Current design is now 'top'.
+
+  Linking design 'top'
+  Using the following designs and libraries:
+  --------------------------------------------------------------------------
+  top                            /home/user/projects/sky130_demo/rtl/top.v
+  counter                        /home/user/projects/sky130_demo/rtl/counter.v
+  alu                            /home/user/projects/sky130_demo/rtl/alu.v
+  mac                            /home/user/projects/sky130_demo/rtl/mac.v
+  sky130_fd_sc_hd__tt_025C_1v80 (library) /tools/lib/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+
+Information: Starting compile_ultra (simulated).
+Information: Evaluating DesignWare library utilization. (UISN-27)
+
+============================================================================
+| DesignWare Building Block Library  |         Version         | Available |
+============================================================================
+| Basic DW Building Blocks           | SIM-2026.11             |     *     |
+| Licensed DW Building Blocks        | SIM-2026.11             |     *     |
+============================================================================
+
+Information: Sequential output inversion is enabled.  SVF file must be used for formal verification. (OPT-1208)
+  Simplifying Design 'top'
+Information: Ungrouping hierarchy u_cnt before Pass 1 (OPT-776)
+
+Loaded alib file './alib-52/sky130_fd_sc_hd__tt_025C_1v80.db.alib' (placeholder)
+  Building model 'DW01_NAND2'
+  Processing 'DW01_NAND2'
+
+  Beginning Pass 1 Mapping
+  ------------------------
+  Processing 'mac'
+  Processing 'mac_DW01_add_0'
+  Processing 'mac_DW02_mult_0'
+  Processing 'alu'
+  Processing 'alu_DW01_add_0'
+  Processing 'alu_DW01_sub_0'
+  Processing 'alu_DW01_cmp6_0'
+  Processing 'alu_DW01_cmp6_1'
+  Processing 'counter'
+  Processing 'counter_DW01_add_0'
+  Processing 'top'
+
+  Updating timing information
+Information: Updating design information... (UID-85)
+
+  Beginning Implementation Selection
+  ----------------------------------
+  Mapping 'mac_DW01_add_0' (pparch)
+  Mapping 'mac_DW02_mult_0' (pparch)
+  Mapping 'alu_DW01_add_0' (pparch)
+  Mapping 'alu_DW01_sub_0' (pparch)
+  Mapping 'counter_DW01_add_0' (pparch)
+
+  Beginning Mapping Optimizations  (Ultra effort)
+  -------------------------------
+                                  TOTAL
+   ELAPSED            WORST NEG   SETUP    DESIGN
+    TIME      AREA      SLACK     COST    RULE COST         ENDPOINT
+  --------- --------- --------- --------- --------- -------------------------
+    0:00:01   18193.9      0.00       0.0       0.0 
+    0:00:02   18082.4      0.00       0.0       0.0 
+    0:00:02   17970.9      0.00       0.0       0.0 
+    0:00:03   17859.3      0.00       0.0       0.0 
+
+  Beginning Delay Optimization Phase
+  ----------------------------------
+                                  TOTAL
+   ELAPSED            WORST NEG   SETUP    DESIGN
+    TIME      AREA      SLACK     COST    RULE COST         ENDPOINT
+  --------- --------- --------- --------- --------- -------------------------
+    0:00:03   17859.3      0.00       0.0       0.0 
+    0:00:04   16763.8      0.00       0.0       0.0 
+    0:00:04   15668.2      0.00       0.0       0.0 
+    0:00:05   14572.7      0.00       0.0       0.0 
+
+  Beginning Area-Recovery Phase  (cleanup)
+  -----------------------------
+                                  TOTAL
+   ELAPSED            WORST NEG   SETUP    DESIGN
+    TIME      AREA      SLACK     COST    RULE COST         ENDPOINT
+  --------- --------- --------- --------- --------- -------------------------
+    0:00:05   14572.7      0.00       0.0       0.0 
+    0:00:06   14292.4      0.00       0.0       0.0 
+    0:00:06   14012.2      0.00       0.0       0.0 
+Loading db file 'sky130_fd_sc_hd__tt_025C_1v80.db'
+
+
+  Optimization Complete
+  ---------------------
+Information: State dependent leakage is now switched from on to off. (PWR-102)
+
+  area  = 14012.1888
+
+################  corner : ss_n40C_1v40  ################
+Removing 4 designs.
+Loading db file 'gtech.db'
+Loading db file 'standard.sldb'
+  Loading link library 'gtech'
+Running PRESTO HDLC
+
+Inferred memory devices in process
+	in routine counter line 11 in file
+		'/home/user/projects/sky130_demo/rtl/counter.v'.
+===============================================================================
+|    Register Name    |   Type    | Width | Bus | MB | AR | AS | SR | SS | ST |
+===============================================================================
+|           count_reg | Flip-flop |     8 |  Y  | N  | Y  | N  | N  | N  | N  |
+===============================================================================
+Presto compilation completed successfully. (counter)
+Presto compilation completed successfully. (alu)
+
+Inferred memory devices in process
+	in routine mac line 12 in file
+		'/home/user/projects/sky130_demo/rtl/mac.v'.
+===============================================================================
+|    Register Name    |   Type    | Width | Bus | MB | AR | AS | SR | SS | ST |
+===============================================================================
+|             acc_reg | Flip-flop |    20 |  Y  | N  | Y  | N  | N  | N  | N  |
+===============================================================================
+Presto compilation completed successfully. (mac)
+
+Inferred memory devices in process
+	in routine top line 47 in file
+		'/home/user/projects/sky130_demo/rtl/top.v'.
+===============================================================================
+|    Register Name    |   Type    | Width | Bus | MB | AR | AS | SR | SS | ST |
+===============================================================================
+|          result_reg | Flip-flop |    16 |  Y  | N  | Y  | N  | N  | N  | N  |
+===============================================================================
+Presto compilation completed successfully. (top)
+Elaborated 4 designs.
+Current design is now 'top'.
+
+  Linking design 'top'
+  Using the following designs and libraries:
+  --------------------------------------------------------------------------
+  top                            /home/user/projects/sky130_demo/rtl/top.v
+  counter                        /home/user/projects/sky130_demo/rtl/counter.v
+  alu                            /home/user/projects/sky130_demo/rtl/alu.v
+  mac                            /home/user/projects/sky130_demo/rtl/mac.v
+  sky130_fd_sc_hd__ss_n40C_1v40 (library) /tools/lib/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__ss_n40C_1v40.lib
+
+Information: Starting compile_ultra (simulated).
+Information: Evaluating DesignWare library utilization. (UISN-27)
+
+============================================================================
+| DesignWare Building Block Library  |         Version         | Available |
+============================================================================
+| Basic DW Building Blocks           | SIM-2026.11             |     *     |
+| Licensed DW Building Blocks        | SIM-2026.11             |     *     |
+============================================================================
+
+Information: Sequential output inversion is enabled.  SVF file must be used for formal verification. (OPT-1208)
+  Simplifying Design 'top'
+Information: Ungrouping hierarchy u_cnt before Pass 1 (OPT-776)
+
+Loaded alib file './alib-52/sky130_fd_sc_hd__ss_n40C_1v40.db.alib' (placeholder)
+  Building model 'DW01_NAND2'
+  Processing 'DW01_NAND2'
+
+  Beginning Pass 1 Mapping
+  ------------------------
+  Processing 'mac'
+  Processing 'mac_DW01_add_0'
+  Processing 'mac_DW02_mult_0'
+  Processing 'alu'
+  Processing 'alu_DW01_add_0'
+  Processing 'alu_DW01_sub_0'
+  Processing 'alu_DW01_cmp6_0'
+  Processing 'alu_DW01_cmp6_1'
+  Processing 'counter'
+  Processing 'counter_DW01_add_0'
+  Processing 'top'
+
+  Updating timing information
+Information: Updating design information... (UID-85)
+
+  Beginning Implementation Selection
+  ----------------------------------
+  Mapping 'mac_DW01_add_0' (pparch)
+  Mapping 'mac_DW02_mult_0' (pparch)
+  Mapping 'alu_DW01_add_0' (pparch)
+  Mapping 'alu_DW01_sub_0' (pparch)
+  Mapping 'counter_DW01_add_0' (pparch)
+
+  Beginning Mapping Optimizations  (Ultra effort)
+  -------------------------------
+                                  TOTAL
+   ELAPSED            WORST NEG   SETUP    DESIGN
+    TIME      AREA      SLACK     COST    RULE COST         ENDPOINT
+  --------- --------- --------- --------- --------- -------------------------
+    0:00:01   18933.6     14.83     261.0       0.0 u_mac/acc_reg_19_/D
+    0:00:02   18875.9     12.97     219.1       0.0 u_mac/acc_reg_19_/D
+    0:00:02   18818.3     11.11     177.3       0.0 u_mac/acc_reg_19_/D
+    0:00:03   18760.7      9.25     135.4       0.0 u_mac/acc_reg_19_/D
+
+  Beginning Delay Optimization Phase
+  ----------------------------------
+                                  TOTAL
+   ELAPSED            WORST NEG   SETUP    DESIGN
+    TIME      AREA      SLACK     COST    RULE COST         ENDPOINT
+  --------- --------- --------- --------- --------- -------------------------
+    0:00:03   18760.7      9.25     135.4       0.0 u_mac/acc_reg_19_/D
+    0:00:04   18321.5      6.46      93.5       0.0 u_mac/acc_reg_19_/D
+    0:00:04   17882.4      3.67      51.6       0.0 u_mac/acc_reg_19_/D
+    0:00:05   17443.2      0.88       9.7       0.0 u_mac/acc_reg_19_/D
+
+  Beginning Area-Recovery Phase  (cleanup)
+  -----------------------------
+                                  TOTAL
+   ELAPSED            WORST NEG   SETUP    DESIGN
+    TIME      AREA      SLACK     COST    RULE COST         ENDPOINT
+  --------- --------- --------- --------- --------- -------------------------
+    0:00:05   17443.2      0.88       9.7       0.0 u_mac/acc_reg_19_/D
+    0:00:06   17107.8      0.88       9.7       0.0 u_mac/acc_reg_19_/D
+    0:00:06   16772.3      0.88       9.7       0.0 u_mac/acc_reg_19_/D
+Loading db file 'sky130_fd_sc_hd__ss_n40C_1v40.db'
+
+
+  Optimization Complete
+  ---------------------
+Information: State dependent leakage is now switched from on to off. (PWR-102)
+
+  [학습 힌트] 타이밍 위반이 남았습니다(WNS -0.881). report_timing 으로 경로를 보고, 클럭 완화/compile_ultra/RTL 파이프라이닝을 고려하세요.
+  area  = 16772.336
+
+################  corner : ff_n40C_1v95  ################
+Removing 4 designs.
+Loading db file 'gtech.db'
+Loading db file 'standard.sldb'
+  Loading link library 'gtech'
+Running PRESTO HDLC
+
+Inferred memory devices in process
+	in routine counter line 11 in file
+		'/home/user/projects/sky130_demo/rtl/counter.v'.
+===============================================================================
+|    Register Name    |   Type    | Width | Bus | MB | AR | AS | SR | SS | ST |
+===============================================================================
+|           count_reg | Flip-flop |     8 |  Y  | N  | Y  | N  | N  | N  | N  |
+===============================================================================
+Presto compilation completed successfully. (counter)
+Presto compilation completed successfully. (alu)
+
+Inferred memory devices in process
+	in routine mac line 12 in file
+		'/home/user/projects/sky130_demo/rtl/mac.v'.
+===============================================================================
+|    Register Name    |   Type    | Width | Bus | MB | AR | AS | SR | SS | ST |
+===============================================================================
+|             acc_reg | Flip-flop |    20 |  Y  | N  | Y  | N  | N  | N  | N  |
+===============================================================================
+Presto compilation completed successfully. (mac)
+
+Inferred memory devices in process
+	in routine top line 47 in file
+		'/home/user/projects/sky130_demo/rtl/top.v'.
+===============================================================================
+|    Register Name    |   Type    | Width | Bus | MB | AR | AS | SR | SS | ST |
+===============================================================================
+|          result_reg | Flip-flop |    16 |  Y  | N  | Y  | N  | N  | N  | N  |
+===============================================================================
+Presto compilation completed successfully. (top)
+Elaborated 4 designs.
+Current design is now 'top'.
+
+  Linking design 'top'
+  Using the following designs and libraries:
+  --------------------------------------------------------------------------
+  top                            /home/user/projects/sky130_demo/rtl/top.v
+  counter                        /home/user/projects/sky130_demo/rtl/counter.v
+  alu                            /home/user/projects/sky130_demo/rtl/alu.v
+  mac                            /home/user/projects/sky130_demo/rtl/mac.v
+  sky130_fd_sc_hd__ff_n40C_1v95 (library) /tools/lib/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__ff_n40C_1v95.lib
+
+Information: Starting compile_ultra (simulated).
+Information: Evaluating DesignWare library utilization. (UISN-27)
+
+============================================================================
+| DesignWare Building Block Library  |         Version         | Available |
+============================================================================
+| Basic DW Building Blocks           | SIM-2026.11             |     *     |
+| Licensed DW Building Blocks        | SIM-2026.11             |     *     |
+============================================================================
+
+Information: Sequential output inversion is enabled.  SVF file must be used for formal verification. (OPT-1208)
+  Simplifying Design 'top'
+Information: Ungrouping hierarchy u_cnt before Pass 1 (OPT-776)
+
+Loaded alib file './alib-52/sky130_fd_sc_hd__ff_n40C_1v95.db.alib' (placeholder)
+  Building model 'DW01_NAND2'
+  Processing 'DW01_NAND2'
+
+  Beginning Pass 1 Mapping
+  ------------------------
+  Processing 'mac'
+  Processing 'mac_DW01_add_0'
+  Processing 'mac_DW02_mult_0'
+  Processing 'alu'
+  Processing 'alu_DW01_add_0'
+  Processing 'alu_DW01_sub_0'
+  Processing 'alu_DW01_cmp6_0'
+  Processing 'alu_DW01_cmp6_1'
+  Processing 'counter'
+  Processing 'counter_DW01_add_0'
+  Processing 'top'
+
+  Updating timing information
+Information: Updating design information... (UID-85)
+
+  Beginning Implementation Selection
+  ----------------------------------
+  Mapping 'mac_DW01_add_0' (pparch)
+  Mapping 'mac_DW02_mult_0' (pparch)
+  Mapping 'alu_DW01_add_0' (pparch)
+  Mapping 'alu_DW01_sub_0' (pparch)
+  Mapping 'counter_DW01_add_0' (pparch)
+
+  Beginning Mapping Optimizations  (Ultra effort)
+  -------------------------------
+                                  TOTAL
+   ELAPSED            WORST NEG   SETUP    DESIGN
+    TIME      AREA      SLACK     COST    RULE COST         ENDPOINT
+  --------- --------- --------- --------- --------- -------------------------
+    0:00:01   18292.8      0.00       0.0       0.0 
+    0:00:02   18159.8      0.00       0.0       0.0 
+    0:00:02   18026.8      0.00       0.0       0.0 
+    0:00:03   17893.8      0.00       0.0       0.0 
+
+  Beginning Delay Optimization Phase
+  ----------------------------------
+                                  TOTAL
+   ELAPSED            WORST NEG   SETUP    DESIGN
+    TIME      AREA      SLACK     COST    RULE COST         ENDPOINT
+  --------- --------- --------- --------- --------- -------------------------
+    0:00:03   17893.8      0.00       0.0       0.0 
+    0:00:04   16541.7      0.00       0.0       0.0 
+    0:00:04   15189.6      0.00       0.0       0.0 
+    0:00:05   13837.5      0.00       0.0       0.0 
+
+  Beginning Area-Recovery Phase  (cleanup)
+  -----------------------------
+                                  TOTAL
+   ELAPSED            WORST NEG   SETUP    DESIGN
+    TIME      AREA      SLACK     COST    RULE COST         ENDPOINT
+  --------- --------- --------- --------- --------- -------------------------
+    0:00:05   13837.5      0.00       0.0       0.0 
+    0:00:06   13571.4      0.00       0.0       0.0 
+    0:00:06   13305.3      0.00       0.0       0.0 
+Loading db file 'sky130_fd_sc_hd__ff_n40C_1v95.db'
+
+
+  Optimization Complete
+  ---------------------
+Information: State dependent leakage is now switched from on to off. (PWR-102)
+
+  area  = 13305.2608
+echo ""
+
+echo "비교:  grep -H "Critical Path Slack" reports/qor_*.rpt"
+비교:  grep -H  Critical Path Slack" reports/qor_*.rpt"
+exit
+
+Memory usage for this session 108 Mbytes.
+Memory usage for this session including child processes 108 Mbytes.
+CPU usage for this session 28 seconds ( 0.01 hours ).
+Elapsed time for this session 3 seconds ( 0.00 hours ).
+
+Thank you...
+[user@dc-sim-host sky130_demo]$ logout
+
